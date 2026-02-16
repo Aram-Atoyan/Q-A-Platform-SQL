@@ -17,6 +17,9 @@ create or replace function register(
 ) 
 returns boolean as $$
 begin
+	PERFORM setval(pg_get_serial_sequence('users','user_id'),
+  		(SELECT COALESCE(MAX(user_id),0) + 1 FROM users),
+  		false);
 	insert into users (first_name, last_name, email, username, password, phone_number, address, city, country, birth_date, gender, bio, status, joined_at)
 	values (p_first_name, p_last_name, p_email, p_username, p_password, p_phone_number, p_address, p_city, p_country, p_birth_date, p_gender, p_bio, p_status, CURRENT_TIMESTAMP);
 	
@@ -34,7 +37,9 @@ create or replace function post_question(
 )
 returns boolean as $$
 begin
-	
+	PERFORM setval(pg_get_serial_sequence('questions','question_id'),
+  		(SELECT COALESCE(MAX(question_id),0) + 1 FROM questions),
+  		false);
 	if (select status from users where user_id = p_author_id) = 'active' then
 		insert into questions (
 			author_id, title, body, status, created_at
@@ -80,6 +85,9 @@ create or replace function post_answer(
 )
 returns boolean as $$
 begin
+	PERFORM setval(pg_get_serial_sequence('answers','answer_id'),
+  		(SELECT COALESCE(MAX(answer_id),0) + 1 FROM answers),
+  		false);
 	insert into answers (question_id, author_id, body, is_accepted, created_at, updated_at)
 	values (p_question_id, p_author_id, p_body, false, CURRENT_TIMESTAMP, null);
 	return true;
@@ -109,6 +117,9 @@ create or replace function make_comment (
 )
 returns boolean as $$
 begin
+	PERFORM setval(pg_get_serial_sequence('comments','comment_id'),
+  		(SELECT COALESCE(MAX(comment_id),0) + 1 FROM comments),
+  		false);
 	if p_question_id is not null and p_answer_id is not null then return false;
 	end if;
 	if p_question_id is null and p_answer_id is null then return false;
@@ -133,6 +144,9 @@ create or replace function make_vote(
 )
 returns boolean as $$
 begin
+	PERFORM setval(pg_get_serial_sequence('votes','vote_id'),
+  		(SELECT COALESCE(MAX(vote_id),0) + 1 FROM votes),
+  		false);
 	if p_answer_id is not null and p_question_id is not null then return false; end if;
 	if p_answer_id is null and p_question_id is null then return false; end if;
 	if exists (select * from votes where voter_id = p_voter_id and vote = p_vote and (question_id = p_question_id or answer_id = p_answer_id)) then return false; end if;	
@@ -153,6 +167,9 @@ create or replace function add_tag_to_question(
 returns boolean as $$
 declare p_tag_id bigint;
 begin
+	PERFORM setval(pg_get_serial_sequence('tags','tag_id'),
+  		(SELECT COALESCE(MAX(tag_id),0) + 1 FROM tags),
+  		false);
 	select tag_id into p_tag_id from tags where tag_name = p_tag_name;
 	if p_tag_id is null then 
 		insert into tags (name, description) values (p_tag_name, p_tag_description);
