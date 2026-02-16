@@ -21,3 +21,6 @@ It includes the database schema, sample data, functions for common actions, and 
 ## Tech
 - PostgreSQL
 - SQL + PL/pgSQL
+
+- ## ERD
+![ERD](images/ERD.png)
